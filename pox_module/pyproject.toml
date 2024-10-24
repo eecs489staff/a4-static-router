@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pox-cs144"
+version = "0.1"
+dependencies = [
+    "twisted"
+]
+
+[tool.setuptools.packages.find]
+include = ["pox.cs144"]

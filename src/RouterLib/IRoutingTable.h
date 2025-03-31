@@ -1,12 +1,12 @@
 #ifndef IROUTINGTABLE_H
 #define IROUTINGTABLE_H
-#include "RouterTypes.h"
 
 #include <cstdint>
-#include <filesystem>
 #include <unordered_map>
 #include <string>
 #include <optional>
+
+#include "RouterTypes.h"
 
 /**
  * @struct RoutingEntry

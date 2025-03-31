@@ -8,8 +8,13 @@
 #include "utils.h"
 
 
-ArpCache::ArpCache(std::chrono::milliseconds timeout, std::shared_ptr<IPacketSender> packetSender, std::shared_ptr<IRoutingTable> routingTable)
+ArpCache::ArpCache(
+    std::chrono::milliseconds timeout, 
+    std::chrono::milliseconds tickInterval, 
+    std::shared_ptr<IPacketSender> packetSender, 
+    std::shared_ptr<IRoutingTable> routingTable)
 : timeout(timeout)
+, tickInterval(tickInterval)
 , packetSender(std::move(packetSender))
 , routingTable(std::move(routingTable)) {
     thread = std::make_unique<std::thread>(&ArpCache::loop, this);
@@ -25,7 +30,7 @@ ArpCache::~ArpCache() {
 void ArpCache::loop() {
     while (!shutdown) {
         tick();
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(tickInterval);
     }
 }
 

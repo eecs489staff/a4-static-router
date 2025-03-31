@@ -1,49 +1,74 @@
 #include "BridgeClient.h"
 
 #include <spdlog/spdlog.h>
-
 #include <iostream>
 
-#include "ArpCache.h"
 #include "BridgeSender.h"
-#include "utils.h"
+
+namespace beast = boost::beast;
+namespace http = beast::http;
+namespace websocket = beast::websocket;
+namespace net = boost::asio;
+using tcp = boost::asio::ip::tcp;
 
 // Constructor
 BridgeClient::BridgeClient(std::filesystem::path routingTablePath,
                            std::string pcapPrefix)
-    : dumper(pcapPrefix + "_input.pcap") {
-    routingTable = std::make_shared<RoutingTable>(routingTablePath);
+    : dumper(pcapPrefix + "_input.pcap"), running(false) {
+    routingTable = RoutingTableFactory::createRoutingTable(routingTablePath);
 
-    client = std::make_shared<WSClient>();
-    client->init_asio();
-    client->clear_access_channels(websocketpp::log::alevel::all);
-    client->clear_error_channels(websocketpp::log::elevel::all);
+    // Set up the WebSocket connection
+    try {
+        // Look up the domain name
+        tcp::resolver resolver(ioc);
+        auto const results = resolver.resolve("localhost", "8080");
 
-    // Set handlers before creating the connection
-    client->set_message_handler([this](auto hdl, WSClient::message_ptr msg) {
-        onMessage(msg->get_payload());
-    });
+        // Make the connection on the IP address we get from a lookup
+        tcp::socket socket(ioc);
+        net::connect(socket, results);
 
-    client->set_fail_handler([this](auto hdl) {
-        spdlog::error("Connection failed (is POX running?)");
-    });
+        // Create the WebSocket stream
+        ws = std::make_shared<WebSocketStream>(std::move(socket));
 
-    std::string wsUri = "ws://localhost:8080";
-    websocketpp::lib::error_code ec;
-    WSClient::connection_ptr con = client->get_connection(wsUri, ec);
-    if (ec) {
-        std::cout << "could not create connection because: " << ec.message()
-                  << std::endl;
+        // Set suggested timeout settings for the websocket
+        ws->set_option(websocket::stream_base::timeout::suggested(
+            beast::role_type::client));
+
+        // Set a decorator to change the User-Agent of the handshake
+        ws->set_option(websocket::stream_base::decorator(
+            [](websocket::request_type& req) {
+                req.set(http::field::user_agent,
+                        std::string(BOOST_BEAST_VERSION_STRING) +
+                            " router-bridge-client");
+            }));
+
+        // Perform the WebSocket handshake
+        ws->handshake("localhost:8080", "/");
+
+        // Create the BridgeSender
+        bridgeSender = std::make_shared<BridgeSender>(ws, pcapPrefix);
+        
+        staticRouter = StaticRouterFactory::createRouter(
+            routingTable, 
+            bridgeSender, 
+            std::chrono::seconds(15), 
+            std::chrono::seconds(1));
+
+        spdlog::info("Connected to WebSocket server at ws://localhost:8080");
+    } catch (const std::exception& e) {
+        spdlog::error("Connection failed (is POX running?): {}", e.what());
         throw std::runtime_error("Could not create connection");
     }
+}
 
-    auto bridgeSender = std::make_shared<BridgeSender>(client, con, pcapPrefix);
-    auto arpCache = std::make_unique<ArpCache>(std::chrono::seconds(15),
-                                               bridgeSender, routingTable);
-    staticRouter = std::make_unique<StaticRouter>(std::move(arpCache),
-                                                  routingTable, bridgeSender);
-
-    client->connect(con);
+BridgeClient::~BridgeClient() {
+    if (running) {
+        // Close the WebSocket connection
+        boost::system::error_code ec;
+        ws->close(websocket::close_code::normal, ec);
+        if (ec)
+            spdlog::error("Error closing WebSocket: {}", ec.message());
+    }
 }
 
 // Method to request interfaces
@@ -75,4 +100,43 @@ void BridgeClient::onMessage(const std::string& message) {
     }
 }
 
-void BridgeClient::run() { client->run(); }
+void BridgeClient::doRead() {
+    // Read a message into our buffer
+    ws->async_read(
+        buffer,
+        [this](boost::system::error_code ec, std::size_t bytesTransferred) {
+            onRead(ec, bytesTransferred);
+        });
+}
+
+void BridgeClient::onRead(boost::system::error_code ec, std::size_t bytesTransferred) {
+    if (ec) {
+        if (ec == websocket::error::closed) {
+            spdlog::info("WebSocket connection closed");
+        } else {
+            spdlog::error("WebSocket read error: {}", ec.message());
+        }
+        return;
+    }
+
+    // Process the message
+    std::string message = beast::buffers_to_string(buffer.data());
+    buffer.consume(buffer.size());  // Clear the buffer
+    
+    onMessage(message);
+
+    // Queue up another read
+    doRead();
+}
+
+void BridgeClient::run() {
+    running = true;
+    
+    // Start the read loop
+    doRead();
+    
+    // Run the Boost ASIO io_context
+    ioc.run();
+    
+    running = false;
+}

@@ -33,15 +33,10 @@ BridgeClient::BridgeClient(std::filesystem::path routingTablePath,
 
         // Set suggested timeout settings for the websocket
         ws->set_option(websocket::stream_base::timeout::suggested(
-            beast::role_type::client));
+            beast::role_type::client)
+        );
 
-        // Set a decorator to change the User-Agent of the handshake
-        ws->set_option(websocket::stream_base::decorator(
-            [](websocket::request_type& req) {
-                req.set(http::field::user_agent,
-                        std::string(BOOST_BEAST_VERSION_STRING) +
-                            " router-bridge-client");
-            }));
+        ws->binary(true);
 
         // Perform the WebSocket handshake
         ws->handshake("localhost:8080", "/");
@@ -67,6 +62,7 @@ BridgeClient::BridgeClient(std::filesystem::path routingTablePath,
 BridgeClient::~BridgeClient() {
     if (running) {
         // Close the WebSocket connection
+        spdlog::info("Closing WebSocket connection");
         boost::system::error_code ec;
         ws->close(websocket::close_code::normal, ec);
         if (ec)
@@ -115,7 +111,7 @@ void BridgeClient::doRead() {
 void BridgeClient::onRead(boost::system::error_code ec, std::size_t bytesTransferred) {
     if (ec) {
         if (ec == websocket::error::closed) {
-            spdlog::info("WebSocket connection closed");
+            spdlog::info("WebSocket connection closed: {}", ec.message());
         } else {
             spdlog::error("WebSocket read error: {}", ec.message());
         }

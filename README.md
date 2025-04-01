@@ -1,12 +1,11 @@
 # Assignment 4: Designing a Static Router
 
-### Due: December 6th, 2024 at 11:59 PM
+### Due: April 21st, 2025 at 11:59 PM
+**Note:** We predict that this project is substantially more work than P3, and likely more work than P2. Please plan accordingly.
 
 ## Overview
 
 In this assignment, you will be writing a simple router configured with a static routing table. Your router will receive raw Ethernet frames. It will process the packets just like a real router, then forward them to the correct outgoing interface.
-
-Your task is to implement the forwarding logic so packets go to the correct interface.
 
 This is not a simulation: your router *will* route real packets to HTTP servers sitting behind your router. When you have finished your router, you should be able to access these servers using regular client software (e.g., `wget/curl`). In addition, you should be able to `ping` and `traceroute` to and through a functioning Internet router. This is the topology you will be using for your development:
 
@@ -50,32 +49,13 @@ After completing this programming assignment, students should be able to:
 ## Getting Set Up
 
 ### Prerequisites
-For this assignment, you can write all of your code locally (although we will still be using a remote machine to run Mininet and forward the traffic to your local computer). **This is the preferred option.**
+For this assignment, you can write and test all of your code locally using the VM from Assignment 1. You will need Mininet installed, please follow the instructions from Assignment 1 for this.
 
-You can also choose to develop on the provided AWS image. 
+In addition, you must have CMake, Boost, and Protocol Buffers installed. You must also have Python with the venv module.
 
-#### AWS Setup (For Everyone)
-You will find an AMI named something like "489 P4" in your AWS account associated with this class, accessed through AWS Learner Lab. Please create a new EC2 instance using this AMI, similar to what you did in Projects 1 and 2. You can find the Project 1 AWS setup guide [here](aws-setup-p1.pdf) for convenience. 
-
-Your instance type does not have to be particularly beefy; a `t2.medium` works perfectly fine, and even smaller will probably work as well. 
-
-Once you have this EC2 instance set up, please clone this repository within the machine.
-
-#### Local Setup (If Developing Locally)
-
-If you're developing on the provided AWS image, you can skip to "Setting Up the Starter Code".
-
-If you choose to develop locally, you must have CMake, Boost, and Protocol Buffers installed.
-
-If you are on a Mac, this is very easy. Simply use Homebrew and run
+Installing CMake and Boost can be done with:
 ```bash
-brew install cmake boost protobuf
-```
-and you're done and ready to skip to "Setting Up the Starter Code".
-
-On Windows or Linux, installing CMake and Boost are also relatively simple. On Ubuntu / WSL, you can run
-```bash
-sudo apt-get install cmake libboost-all-dev
+sudo apt-get install cmake libboost-all-dev build-essential
 ```
 However, for Protocol Buffers, you will need to build it from source. The following instructions will guide you through the process.
 
@@ -91,7 +71,7 @@ cd protobuf
 
 Next, check out a release version of Protocol Buffers by running:
 ```bash
-git checkout tags/v28.3
+git checkout tags/v30.2
 ```
 
 Then, run the following commands in succession to build and install Protocol Buffers:
@@ -111,8 +91,6 @@ It may take a while to build Protocol Buffers after running the `make` command. 
 Finally, make sure you have `venv` installed (it is usually pre-installed on most Python distributions). If not, use Google to find out how to install it for your specific OS.
 
 ### Setting Up the Starter Code 
-This section should be completed wherever you are planning on developing, whether locally or on AWS. 
-
 First, download the starter code by cloning this repository. Then, run `setup.sh` to set up the environment. This script will create the Protocol Buffers files and create a virtual environment for Python that other scripts will use.
 
 ### Running the Starter Code
@@ -148,6 +126,8 @@ Each line in the routing table (rtable) file is a routing entry and has the foll
 prefix        next_hop     netmask          interface
 ```
 
+The prefix and netmask will be used together to determine the best match. You will then route the packet to the next_hop.
+
 Here is the default routing table that you will find on the VM. The first entry is the default route.
 
 ```
@@ -163,34 +143,20 @@ You should now have all the pieces needed to build and run the router:
 * A routing table file that corresponds to the routing table for the router node in that topology
 * The starter code
 
-You first want to ssh into the AWS remote host, forwarding the port for Mininet if running locally. You can do this by running the following command:
-
-**If you are running the server and POX locally:**
-```bash
-$ ssh -i <your-key.pem> -R 6633:localhost:6633 ubuntu@<your-aws-ip>
-```
-
-**If you are running the server and POX on the AWS remote host:**
-```bash
-$ ssh -i <your-key.pem> ubuntu@<your-aws-ip>
-```
-
-> 6633 is the default port used by POX for communication. Do not try to use a different port; this is not an arbitrary choice. 
-
 You can build and run the starter code as follows:
 
 ```bash
 $ mkdir build
 $ cd build
-$ cmake ..
+$ cmake ../cpp
 $ make
 ```
-First, run POX wherever you are developing your code:
+First, run POX wherever you are developing your code in one terminal:
 ```bash
 $ ./run_pox.sh
 ```
 
-**On the AWS remote host**, run the following command:
+In a second terminal, run the following command:
 ```bash
 $ ./run_mininet.sh
 ````
@@ -201,14 +167,12 @@ Mininet and POX need to be started for your router to run.
 
 Now, you can run the router (again, wherever you are developing your code):
 ```bash
-$ ./StaticRouter -r ../rtable
+$ ./StaticRouter -r <path-to-rtable>
 ```
 
-By default, SR looks for `rtable` from the current working directory. This can be overridden by the `-r` option.
+By default, SR looks for `rtable` from the current working directory. This can be overridden by the `-r` option. We have provided you with an example routing table in the root directory of the repo in a file named `rtable`.
 
-In summary, always run Mininet on AWS:
-- If you are developing on AWS, run POX and StaticRouter on AWS as well.
-- If you are developing locally, set up reverse port forwarding for Port 6633 (with the command provided above). Run POX and StaticRouter locally. 
+With the router running (assuming you have a correct SR implementation), you can have mininet hosts send packets to one another in the mininet terminal or with new terminals created with `./util/mnbash <host>`. To test your router, it is suggested to try running the webservers provided in `py/http_server{1,2}/webserver.py` on one host and send HTTP requests from another host, ping from one host to another, or any other tests you would like.
 
 <a name="background"></a>
 ## Background: Routing
@@ -279,16 +243,21 @@ Packets destined elsewhere should be forwarded using your normal forwarding logi
 <a name="code-overview"></a>
 ## Code Overview
 
+You will be writing a C++ library called `RouterLib`. The CMake files have already been set up for you, and this library is defined.
+
+Usually, libraries will expose interfaces and factory methods for users of the library to use. They will also contain implementation details that govern how the different classes are implemented, which tend to be hidden from the final users. RouterLib defines interfaces for what a `RoutingTable` and `StaticRouter` should be able to do. In this case, a `RoutingTable` manages routing entries and network interfaces, while a `StaticRouter` can handle packets that come in.
+
+An example of this that you will use is the `IPacketSender` interface. Taking a look at the file, an `IPacketSender` lets a user send a packet on an interface. To illustrate why interfaces are nice, let's look at the code that runs (we encourage you to actually peruse to code to understand how your code will be used).
+
+You will notice that we create a `BridgeSender` class that communicates with POX over WebSockets using Boost Beast, using a WebSocketStream provided by `BridgeClient` that uses a Boost AsyncIO context. The BridgeClient defines two event handlers that read network packets as serialized Protobuf objects, which it... **doesn't that all sound so complicated?**
+
+Thanks to the interface, you don't have to think about any of that. `IPacketSender` describes the part that's relevant to you, which is that it allows you to send packets on an interface.
+
 ### Classes
-**Note:** You can and should modify the provided classes as you need (please don't try to write all your code in the `handlePacket` function for the `StaticRouter`). You are even free to modify/delete all of the starter code.
 
-The only requirements are that:
-- The `IPacketSender.h` file is not modified.
-- The `IArpCache.h` file is not modified.
-- The `IRoutingTable.h` file is not modified.
-- The signatures of `StaticRouter`'s constructor and `handlePacket` function are not modified.
+**Note:** You can and should modify the provided classes as you need (please don't try to write all your code in the `handlePacket` function for the `StaticRouter`). You are even free to modify/delete almost all of the starter code. However, we expect that all of your work will take place in `src/RouterLib/detail`.
 
-You may find it helpful to look at the `IArpCache.h` and `RoutingTable.h` classes to understand the different structures and functions you will be working with.
+The only requirement is that you may not modify any of the files in `src/RouterLib` outside of the `detail` folder. You should take a look at the interface files to understand what you will be implementing.
 
 #### The Router (`StaticRouter.h/cpp`)
 You must implement the forwarding logic in `StaticRouter.cpp`. The router is a simple router that forwards packets based on a static routing table. The router will receive raw Ethernet frames and process the packets just like a real router, then forward them to the correct outgoing interface.
@@ -391,17 +360,14 @@ We have provided you with some basic debugging functions in `utils.h`, `utils.c`
 ## Submitting
 Submission to the autograder will be done [here](https://g489.eecs.umich.edu/).
 
-The submission may include any files that you have modified or added. However, **you must ensure that:**
-- The `IPacketSender.h` file is not modified.
-- The `IArpCache.h` file is not modified.
-- The `IRoutingTable.h` file is not modified.
-- Nothing in the `detail/` directory is modified.
-- The signatures of `StaticRouter`'s constructor and `handlePacket` function are not modified.
+As usual, you will find a `submit.sh` file under the `util` folder. You should run it from the root directory as
+```bash
+./util/submit.sh .
+```
 
-### What to Submit
-You should submit all files **outside** of the `detail/` directory that is necessary for your code to compile. We will automatically compile any added files with `.cpp` or `.h` extensions with your code. You must ensure that your code compiles with no modifications to the provided `CMakeLists.txt` file.
+and submit the resulting tarball to the Autograder.
+
 ### Autograder
-Fall 2024 is the first time we are using our new Autograder for this assignment! Although we have attempted to test it thoroughly, please reach out during Office Hours or over Ed if you think that you are incorrectly failing a test case.  
 
 In general, we have attempted to provide a significant amount of feedback through these test cases. You will notice that the Autograder allows you to see whatever your code prints out, in addition to output from our test cases that explains precisely what you have gotten wrong. In theory, this output allows you to reverse-engineer some parts of our test cases; however, we do not anticipate that doing this will be any more useful to you than simply looking at the AG output. If you think some output is unclear or poorly formatted, please reach out! We reserve the right to modify grades as we see fit if we feel that you have attempted to "hardcode" any outputs to deceive the Autograder. 
 

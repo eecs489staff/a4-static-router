@@ -7,4 +7,4 @@ fi
 
 protoc --python_out=. router_bridge.proto
 
-mv router_bridge_pb2.py ../py/pox/ext/
+mv router_bridge_pb2.py ../../py/pox/ext/

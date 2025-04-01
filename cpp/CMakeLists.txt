@@ -4,6 +4,12 @@ project(StaticRouter)
 # Specify the C++ standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+if(POLICY CMP0167)
+  cmake_policy(SET CMP0167 NEW)
+endif()
+
 include(CheckCXXSourceRuns)
 include(FetchContent)
 
@@ -15,25 +21,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(spdlog)
 
-FetchContent_Declare(
-        websocketspp
-        GIT_REPOSITORY https://github.com/zaphoyd/websocketpp.git
-        GIT_TAG develop
-)
-FetchContent_MakeAvailable(websocketspp)
-
-message(STATUS "WEBSOCKETPP_INCLUDE: ${websocketpp_SOURCE_DIR}")
-
-add_subdirectory(proto)
-
-file(GLOB_RECURSE SRCS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h" "${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp")
-
 find_package(Boost REQUIRED COMPONENTS system thread)
-
-add_executable(StaticRouter ${SRCS})
-target_link_libraries(StaticRouter proto spdlog::spdlog)
-target_include_directories(StaticRouter SYSTEM PRIVATE ${websocketpp_SOURCE_DIR} ${CMAKE_BINARY_DIR}/proto)
-target_include_directories(StaticRouter PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 CHECK_CXX_SOURCE_RUNS("
     #include <cstdint>
@@ -55,3 +43,7 @@ if (IS_LITTLE_ENDIAN)
 else()
     add_compile_definitions(__BYTE_ORDER=2)
 endif()
+
+add_subdirectory(proto)
+add_subdirectory(src)
+add_subdirectory(test)

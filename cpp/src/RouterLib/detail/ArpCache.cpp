@@ -8,8 +8,15 @@
 #include "utils.h"
 
 
-ArpCache::ArpCache(std::chrono::milliseconds timeout, std::shared_ptr<IPacketSender> packetSender, std::shared_ptr<IRoutingTable> routingTable)
-: timeout(timeout)
+ArpCache::ArpCache(
+    std::chrono::milliseconds entryTimeout, 
+    std::chrono::milliseconds tickInterval, 
+    std::chrono::milliseconds resendInterval,
+    std::shared_ptr<IPacketSender> packetSender, 
+    std::shared_ptr<IRoutingTable> routingTable)
+: entryTimeout(entryTimeout)
+, tickInterval(tickInterval)
+, resendInterval(resendInterval)
 , packetSender(std::move(packetSender))
 , routingTable(std::move(routingTable)) {
     thread = std::make_unique<std::thread>(&ArpCache::loop, this);
@@ -25,7 +32,7 @@ ArpCache::~ArpCache() {
 void ArpCache::loop() {
     while (!shutdown) {
         tick();
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(tickInterval);
     }
 }
 
@@ -38,7 +45,7 @@ void ArpCache::tick() {
 
     // Remove entries that have been in the cache for too long
     std::erase_if(entries, [this](const auto& entry) {
-        return std::chrono::steady_clock::now() - entry.second.timeAdded >= timeout;
+        return std::chrono::steady_clock::now() - entry.second.timeAdded >= entryTimeout;
     });
 }
 

@@ -56,7 +56,7 @@ In addition, you must have CMake, Boost, and Protocol Buffers installed. You mus
 
 Installing CMake and Boost can be done with:
 ```bash
-sudo apt-get install cmake libboost-all-dev
+sudo apt-get install cmake libboost-all-dev build-essential
 ```
 However, for Protocol Buffers, you will need to build it from source. The following instructions will guide you through the process.
 

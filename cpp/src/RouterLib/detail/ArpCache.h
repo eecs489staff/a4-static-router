@@ -42,10 +42,11 @@ private:
     std::chrono::milliseconds entryTimeout;
     std::chrono::milliseconds tickInterval;
     std::chrono::milliseconds resendInterval;
-    std::mutex mutex;
+
     std::unique_ptr<std::thread> thread;
     std::atomic<bool> shutdown = false;
 
+    std::mutex mutex;
     std::shared_ptr<IPacketSender> packetSender;
     std::shared_ptr<IRoutingTable> routingTable;
 

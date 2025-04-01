@@ -1,5 +1,6 @@
 """
-Start up a Simple topology for CS144
+Start up a Simple topology
+Based on Stanford's CS 144
 """
 
 from mininet.net import Mininet
@@ -19,8 +20,8 @@ ROOTIP = '10.3.0.100/16'
 IPCONFIG_FILE = './IP_CONFIG'
 IP_SETTING={}
 
-class CS144Topo( Topo ):
-    "CS 144 Lab 3 Topology"
+class SpecTopo( Topo ):
+    "Spec Topology"
     
     def __init__( self, *args, **kwargs ):
         Topo.__init__( self, *args, **kwargs )
@@ -32,8 +33,8 @@ class CS144Topo( Topo ):
             self.addLink( h, router )
 
 
-class CS144Controller( Controller ):
-    "Controller for CS144 Multiple IP Bridge"
+class SpecController( Controller ):
+    "Controller for Multiple IP Bridge"
 
     def __init__( self, name, inNamespace=False, command='controller',
                  cargs='-v ptcp:%d', cdir=None, ip="127.0.0.1",
@@ -133,11 +134,11 @@ def get_ip_setting():
     except EnvironmentError:
         exit("Couldn't load config file for ip addresses, check whether %s exists" % IPCONFIG_FILE)
 
-def cs144net():
+def net():
     stophttp()
-    "Create a simple network for cs144"
+    "Create a simple network"
     get_ip_setting()
-    topo = CS144Topo()
+    topo = SpecTopo()
     info( '*** Creating network\n' )
     net = Mininet( topo=topo, controller=RemoteController, ipBase=IPBASE )
     net.start()
@@ -162,4 +163,4 @@ def cs144net():
 
 if __name__ == '__main__':
     setLogLevel( 'info' )
-    cs144net()
+    net()

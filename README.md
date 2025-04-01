@@ -50,17 +50,11 @@ After completing this programming assignment, students should be able to:
 ## Getting Set Up
 
 ### Prerequisites
-For this assignment, you can write all of your code locally and test using a VM, similar to Assignment 1.
+For this assignment, you can write and test all of your code locally using the VM from Assignment 1. You will need Mininet installed, please follow the instructions from Assignment 1 for this.
 
-You must have CMake, Boost, and Protocol Buffers installed.
+In addition, you must have CMake, Boost, and Protocol Buffers installed. You must also have Python with the venv module.
 
-If you are on a Mac, this is very easy. Simply use Homebrew and run
-```bash
-brew install cmake boost protobuf
-```
-and you're done and ready to skip to "Setting Up the Starter Code".
-
-On Windows or Linux, installing CMake and Boost are also relatively simple. On Ubuntu / WSL, you can run
+Installing CMake and Boost can be done with:
 ```bash
 sudo apt-get install cmake libboost-all-dev
 ```
@@ -98,7 +92,7 @@ It may take a while to build Protocol Buffers after running the `make` command. 
 Finally, make sure you have `venv` installed (it is usually pre-installed on most Python distributions). If not, use Google to find out how to install it for your specific OS.
 
 ### Setting Up the Starter Code 
-First, download the starter code by cloning this repository. Then, run `py_setup.sh` to set up the environment. This script will create the Protocol Buffers files and create a virtual environment for Python that other scripts will use.
+First, download the starter code by cloning this repository. Then, run `setup.sh` to set up the environment. This script will create the Protocol Buffers files and create a virtual environment for Python that other scripts will use.
 
 ### Running the Starter Code
 
@@ -148,34 +142,20 @@ You should now have all the pieces needed to build and run the router:
 * A routing table file that corresponds to the routing table for the router node in that topology
 * The starter code
 
-You first want to ssh into the AWS remote host, forwarding the port for Mininet if running locally. You can do this by running the following command:
-
-**If you are running the server and POX locally:**
-```bash
-$ ssh -i <your-key.pem> -R 6633:localhost:6633 ubuntu@<your-aws-ip>
-```
-
-**If you are running the server and POX on the AWS remote host:**
-```bash
-$ ssh -i <your-key.pem> ubuntu@<your-aws-ip>
-```
-
-> 6633 is the default port used by POX for communication. Do not try to use a different port; this is not an arbitrary choice. 
-
 You can build and run the starter code as follows:
 
 ```bash
 $ mkdir build
 $ cd build
-$ cmake ..
+$ cmake ../cpp
 $ make
 ```
-First, run POX wherever you are developing your code:
+First, run POX wherever you are developing your code in one terminal:
 ```bash
 $ ./run_pox.sh
 ```
 
-**On the AWS remote host**, run the following command:
+In a second terminal, run the following command:
 ```bash
 $ ./run_mininet.sh
 ````
@@ -191,9 +171,7 @@ $ ./StaticRouter -r ../rtable
 
 By default, SR looks for `rtable` from the current working directory. This can be overridden by the `-r` option.
 
-In summary, always run Mininet on AWS:
-- If you are developing on AWS, run POX and StaticRouter on AWS as well.
-- If you are developing locally, set up reverse port forwarding for Port 6633 (with the command provided above). Run POX and StaticRouter locally. 
+With the router running (assuming you have a correct SR implementation), you can have mininet hosts send packets to one another in the mininet terminal or with new terminals created with `./util/mnbash <host>`. To test your router, it is suggested to try running the webservers provided in `py/http_server{1,2}/webserver.py` on one host and send HTTP requests from another host, ping from one host to another, or any other tests you would like.
 
 <a name="background"></a>
 ## Background: Routing

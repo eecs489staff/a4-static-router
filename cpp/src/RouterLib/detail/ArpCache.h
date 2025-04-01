@@ -20,8 +20,9 @@ struct ArpEntry {
 class ArpCache {
 public:
     ArpCache(
-        std::chrono::milliseconds timeout,
+        std::chrono::milliseconds entryTimeout,
         std::chrono::milliseconds tickInterval,
+        std::chrono::milliseconds resendInterval,
         std::shared_ptr<IPacketSender> packetSender, 
         std::shared_ptr<IRoutingTable> routingTable);
 
@@ -38,9 +39,9 @@ public:
 private:
     void loop();
 
-    std::chrono::milliseconds timeout;
+    std::chrono::milliseconds entryTimeout;
     std::chrono::milliseconds tickInterval;
-
+    std::chrono::milliseconds resendInterval;
     std::mutex mutex;
     std::unique_ptr<std::thread> thread;
     std::atomic<bool> shutdown = false;

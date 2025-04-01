@@ -9,12 +9,14 @@
 
 
 ArpCache::ArpCache(
-    std::chrono::milliseconds timeout, 
+    std::chrono::milliseconds entryTimeout, 
     std::chrono::milliseconds tickInterval, 
+    std::chrono::milliseconds resendInterval,
     std::shared_ptr<IPacketSender> packetSender, 
     std::shared_ptr<IRoutingTable> routingTable)
-: timeout(timeout)
+: entryTimeout(entryTimeout)
 , tickInterval(tickInterval)
+, resendInterval(resendInterval)
 , packetSender(std::move(packetSender))
 , routingTable(std::move(routingTable)) {
     thread = std::make_unique<std::thread>(&ArpCache::loop, this);
@@ -43,7 +45,7 @@ void ArpCache::tick() {
 
     // Remove entries that have been in the cache for too long
     std::erase_if(entries, [this](const auto& entry) {
-        return std::chrono::steady_clock::now() - entry.second.timeAdded >= timeout;
+        return std::chrono::steady_clock::now() - entry.second.timeAdded >= entryTimeout;
     });
 }
 

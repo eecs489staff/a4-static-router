@@ -1,5 +1,6 @@
 #include "BridgeClient.h"
 
+#include <chrono>
 #include <spdlog/spdlog.h>
 #include <iostream>
 
@@ -52,7 +53,9 @@ BridgeClient::BridgeClient(std::filesystem::path routingTablePath,
             routingTable, 
             bridgeSender, 
             std::chrono::seconds(15), 
-            std::chrono::seconds(1));
+            std::chrono::milliseconds(500),
+            std::chrono::seconds(1)
+        );
 
         spdlog::info("Connected to WebSocket server at ws://localhost:8080");
     } catch (const std::exception& e) {

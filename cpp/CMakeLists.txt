@@ -19,8 +19,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(spdlog)
 
-add_subdirectory(proto)
-
 find_package(Boost REQUIRED COMPONENTS system thread)
 
 CHECK_CXX_SOURCE_RUNS("
@@ -44,4 +42,6 @@ else()
     add_compile_definitions(__BYTE_ORDER=2)
 endif()
 
+add_subdirectory(proto)
 add_subdirectory(src)
+add_subdirectory(test)

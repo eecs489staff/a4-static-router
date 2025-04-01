@@ -1,6 +1,6 @@
 # Assignment 4: Designing a Static Router
 
-### Due: December 6th, 2024 at 11:59 PM
+### Due: April 21st, 2025 at 11:59 PM
 
 ## Overview
 
@@ -50,22 +50,9 @@ After completing this programming assignment, students should be able to:
 ## Getting Set Up
 
 ### Prerequisites
-For this assignment, you can write all of your code locally (although we will still be using a remote machine to run Mininet and forward the traffic to your local computer). **This is the preferred option.**
+For this assignment, you can write all of your code locally and test using a VM, similar to Assignment 1.
 
-You can also choose to develop on the provided AWS image. 
-
-#### AWS Setup (For Everyone)
-You will find an AMI named something like "489 P4" in your AWS account associated with this class, accessed through AWS Learner Lab. Please create a new EC2 instance using this AMI, similar to what you did in Projects 1 and 2. You can find the Project 1 AWS setup guide [here](aws-setup-p1.pdf) for convenience. 
-
-Your instance type does not have to be particularly beefy; a `t2.medium` works perfectly fine, and even smaller will probably work as well. 
-
-Once you have this EC2 instance set up, please clone this repository within the machine.
-
-#### Local Setup (If Developing Locally)
-
-If you're developing on the provided AWS image, you can skip to "Setting Up the Starter Code".
-
-If you choose to develop locally, you must have CMake, Boost, and Protocol Buffers installed.
+You must have CMake, Boost, and Protocol Buffers installed.
 
 If you are on a Mac, this is very easy. Simply use Homebrew and run
 ```bash
@@ -111,9 +98,7 @@ It may take a while to build Protocol Buffers after running the `make` command. 
 Finally, make sure you have `venv` installed (it is usually pre-installed on most Python distributions). If not, use Google to find out how to install it for your specific OS.
 
 ### Setting Up the Starter Code 
-This section should be completed wherever you are planning on developing, whether locally or on AWS. 
-
-First, download the starter code by cloning this repository. Then, run `setup.sh` to set up the environment. This script will create the Protocol Buffers files and create a virtual environment for Python that other scripts will use.
+First, download the starter code by cloning this repository. Then, run `py_setup.sh` to set up the environment. This script will create the Protocol Buffers files and create a virtual environment for Python that other scripts will use.
 
 ### Running the Starter Code
 
@@ -401,7 +386,7 @@ The submission may include any files that you have modified or added. However, *
 ### What to Submit
 You should submit all files **outside** of the `detail/` directory that is necessary for your code to compile. We will automatically compile any added files with `.cpp` or `.h` extensions with your code. You must ensure that your code compiles with no modifications to the provided `CMakeLists.txt` file.
 ### Autograder
-Fall 2024 is the first time we are using our new Autograder for this assignment! Although we have attempted to test it thoroughly, please reach out during Office Hours or over Ed if you think that you are incorrectly failing a test case.  
+This Autograder is new from the previous semester, Fall 2024. Although we have attempted to test it thoroughly, please reach out during Office Hours or over Ed if you think that you are incorrectly failing a test case.  
 
 In general, we have attempted to provide a significant amount of feedback through these test cases. You will notice that the Autograder allows you to see whatever your code prints out, in addition to output from our test cases that explains precisely what you have gotten wrong. In theory, this output allows you to reverse-engineer some parts of our test cases; however, we do not anticipate that doing this will be any more useful to you than simply looking at the AG output. If you think some output is unclear or poorly formatted, please reach out! We reserve the right to modify grades as we see fit if we feel that you have attempted to "hardcode" any outputs to deceive the Autograder. 
 

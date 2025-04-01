@@ -2,10 +2,10 @@ set -e
 
 echo "Generating Python proto files..."
 
-cd proto || exit
+cd cpp/proto || exit
 ./generate_python_proto.sh
 
-cd ../py
+cd ../../py
 # If no virtualenv exists, create one
 if [ ! -d ".venv" ]; then
     echo "No virtualenv found. Creating one..."

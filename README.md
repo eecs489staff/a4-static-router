@@ -195,7 +195,7 @@ Given a raw Ethernet frame, if the frame contains an IP packet whose destination
 1. Check that the packet is valid (has a correct checksum).
 2. Decrement the TTL by 1, and recompute the packet checksum over the modified header.
 3. Find out which entry in the routing table has the longest prefix match with the destination IP address.
-4. Check the ARP cache for the next-hop MAC address corresponding to the next-hop IP. If it's there, send it. Otherwise, send an ARP request for the next-hop IP (if one hasn't been sent within the last second), and add the packet to the queue of packets waiting on this ARP request.
+4. Check the ARP cache for the next-hop MAC address corresponding to the next-hop IP. If it's there, send it. Otherwise, send an ARP request for the next-hop IP (if one hasn't been sent within the last `resendInterval`), and add the packet to the queue of packets waiting on this ARP request.
 
 This is a high-level overview of the forwarding process. More low-level details are below. For example, if an error occurs in any of the above steps, you will have to send an ICMP message back to the sender notifying them of an error. You may also get an ARP request or reply, which has to interact with the ARP cache correctly.
 
@@ -225,7 +225,7 @@ ARP is needed to determine the next-hop MAC address that corresponds to the next
 
 To lessen the number of ARP requests sent out, you are required to cache ARP replies. Cache entries should time out after a given amount of time to minimize staleness. The provided ARP cache class already times the entries out for you.
 
-When forwarding a packet to a next-hop IP address, the router should first check the ARP cache for the corresponding MAC address before sending an ARP request. In the case of a cache miss, an ARP request should be sent to a target IP address about once every second until a reply comes in. If the ARP request is sent seven times with no reply, an ICMP destination host unreachable is sent back to the source IP as stated above. The provided ARP request queue will help you manage the request queue.
+When forwarding a packet to a next-hop IP address, the router should first check the ARP cache for the corresponding MAC address before sending an ARP request. In the case of a cache miss, an ARP request should be sent to a target IP address about once every `resendInterval` until a reply comes in. If the ARP request is sent seven times with no reply, an ICMP destination host unreachable is sent back to the source IP as stated above. The provided ARP request queue will help you manage the request queue.
 
 In the case of an ARP request, you should only send an ARP reply if the target IP address is the IP address of the interface on which the ARP request arrived. Remember, as our model for this project is a router that sits between LANs, ARP requests for your router's IPs that do not arrive on the correct interface don't make sense, and should be ignored. 
 

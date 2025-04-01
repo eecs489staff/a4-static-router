@@ -7,7 +7,11 @@ cd cpp/proto || exit
 
 cd ../../py
 # If no virtualenv exists, create one
-if [ ! -d ".venv" ]; then
+if [ ! -f ".venv/bin/activate" ]; then
+    if [ -d ".venv" ]; then
+        echo "Incomplete virtualenv found. Removing and recreating..."
+        rm -rf .venv
+    fi
     echo "No virtualenv found. Creating one..."
     python3 -m venv .venv
 fi

@@ -1,3 +1,8 @@
+---
+layout: spec
+latex: true
+---
+
 # Assignment 4: Designing a Static Router
 
 ### Due: April 22nd, 2025 at 11:59 PM

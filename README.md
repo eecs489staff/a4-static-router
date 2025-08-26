@@ -5,7 +5,7 @@ latex: true
 
 # Assignment 4: Designing a Static Router
 
-### Due: April 22nd, 2025 at 11:59 PM
+### Due: December 5, 2025 at 11:59 PM
 **Note:** We predict that this project is substantially more work than P3, and likely more work than P2. Please plan accordingly.
 
 ## Overview

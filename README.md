@@ -5,7 +5,7 @@ latex: true
 
 # Assignment 4: Designing a Static Router
 
-### Due: December 5, 2025 at 11:59 PM
+### Due: December 11, 2026 at 11:59 PM
 **Note:** We predict that this project is substantially more work than P3, and likely more work than P2. Please plan accordingly.
 
 ## Overview
@@ -16,13 +16,13 @@ This is not a simulation: your router *will* route real packets to HTTP servers 
 
 <img src="p4-architecture.png" title="Project 4 Architecture" />
 
-* The yellow parts (i.e. the static router, including implementations of the ARPCache and the RoutingTable classes) is the part that you will be writing. Your static router will control the logic of the Mininet switch. 
+* The yellow parts (i.e. the static router, including implementations of the ARPCache and the RoutingTable classes) are the parts that you will be writing. Your static router will control the logic of the Mininet switch. 
 * The blue parts are the topology implemented within Mininet, which includes a switch and three hosts (server1, server2, and the client). 
 * The POX controller just eases communication between Mininet and your code; you don't need to think about how it works. 
 
 **NOTE: From this point in the spec, we use *router* to refer to the static router that you will be writing, and *switch* to refer to the Mininet switch.** 
 
-> In general, the terms switch and router are used somewhat confusingly in a networking context. There is a [technical difference between them](https://www.cloudflare.com/learning/network-layer/what-is-a-network-switch/), but modern consumer routers often have built-in switches, so you will hear the two terms used interchangably outside this project.
+> In general, the terms switch and router are used somewhat confusingly in a networking context. There is a [technical difference between them](https://www.cloudflare.com/learning/network-layer/what-is-a-network-switch/), but modern consumer routers often have built-in switches, so you will hear the two terms used interchangeably outside this project.
 
 
 Once your router is functioning correctly, you will be able to perform all of the following operations:
@@ -112,7 +112,7 @@ The POX controller allows the Mininet switch to communicate with the router. The
 ```aiignore
 Mininet Host --> Mininet Switch: "Hey, I have this packet for you."
 Mininet Switch --> POX Controller: "Hey, this packet just came in, what should I do with it?"
-POX Controller --> Your Router: "Hey, this packet just came in. Let me know if I should send out any packets soon, and if so, out of which interface."
+POX Controller --> Your Router: "Hey, this packet just came in. Let me know if I should send out any packets soon, and if so, through which interface."
 Your Router --> POX Controller: "Send out this packet out of this interface."
 POX Controller --> Mininet Switch: "Send out this packet out of this interface."
 Mininet Switch --> Another Mininet Host: "I have this packet for you."
@@ -164,11 +164,11 @@ $ ./run_pox.sh
 In a second terminal, run the following command:
 ```bash
 $ ./run_mininet.sh
-````
+```
 
 Mininet and POX need to be started for your router to run.
 
-> Note: Mininet will connect to POX, so POX should be running first. However, it is okay if you need to restart POX while Mininet is running, as long as there is not a large amount of time where Mininet is running but POX is not.*
+> Note: Mininet will connect to POX, so POX should be running first. However, it is okay if you need to restart POX while Mininet is running, as long as there is not a large amount of time where Mininet is running but POX is not.
 
 Now, you can run the router (again, wherever you are developing your code):
 ```bash
@@ -379,4 +379,4 @@ In general, we have attempted to provide a significant amount of feedback throug
 <a name="important-notes"></a>
 
 ## Acknowledgements
-This programming assignment is based on Stanford's lab 3 from CS 144: Introduction to Computer Networking, and translated into C++ by the University of Michigan's EECS 489 F24 staff.
+This programming assignment is based on Stanford's lab 3 from CS 144: Introduction to Computer Networking, and translated into C++ by the University of Michigan's EECS 489 F26 staff.
